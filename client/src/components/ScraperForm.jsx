@@ -100,7 +100,7 @@ function ScraperForm() {
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         placeholder="Give me the full URL"
-        className="w-full px-5 py-4 rounded-full bg-white/90 backdrop-blur-sm border-0 text-text placeholder:text-gray-400 focus:ring-2 focus:ring-accent-blue outline-none transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+        className="w-full px-5 py-4 rounded-full bg-white/90 backdrop-blur-sm border-0 text-text text-center placeholder:text-gray-400 placeholder:text-center focus:ring-2 focus:ring-accent-blue outline-none transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
         disabled={loading}
       />
       {error && (
