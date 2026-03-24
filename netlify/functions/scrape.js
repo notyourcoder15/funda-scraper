@@ -1,4 +1,3 @@
-import axios from 'axios';
 import * as cheerio from 'cheerio';
 import archiver from 'archiver';
 import pLimit from 'p-limit';
@@ -6,6 +5,24 @@ import pLimit from 'p-limit';
 const MAX_IMAGES = 50;
 const SCRAPE_TIMEOUT = 15000;
 const IMAGE_FETCH_TIMEOUT = 8000;
+
+async function httpGet(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'nl-NL,nl;q=0.9,en;q=0.8',
+      ...options.headers
+    },
+    signal: AbortSignal.timeout(SCRAPE_TIMEOUT)
+  });
+  return {
+    data: await response.text(),
+    headers: response.headers,
+    status: response.status
+  };
+}
 
 function validateUrl(urlString) {
   try {
@@ -23,14 +40,7 @@ function validateUrl(urlString) {
 }
 
 async function scrapeListing(url) {
-  const response = await axios.get(url, {
-    timeout: SCRAPE_TIMEOUT,
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'nl-NL,nl;q=0.9,en;q=0.8',
-    }
-  });
+  const response = await httpGet(url);
 
   const $ = cheerio.load(response.data);
   const imageUrls = new Set();
@@ -96,15 +106,16 @@ async function fetchImages(urls) {
   const results = await Promise.all(
     urls.map((url, index) => limit(async () => {
       try {
-        const response = await axios.get(url, {
-          responseType: 'arraybuffer',
-          timeout: IMAGE_FETCH_TIMEOUT,
-          headers: { 'User-Agent': 'Mozilla/5.0' }
+        const response = await fetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          signal: AbortSignal.timeout(IMAGE_FETCH_TIMEOUT)
         });
-        const extension = response.headers['content-type']?.includes('png') ? 'png' : 'jpg';
+        const arrayBuffer = await response.arrayBuffer();
+        const contentType = response.headers.get('content-type') || '';
+        const extension = contentType.includes('png') ? 'png' : 'jpg';
         return {
           filename: `image-${String(index + 1).padStart(3, '0')}.${extension}`,
-          buffer: Buffer.from(response.data)
+          buffer: Buffer.from(arrayBuffer)
         };
       } catch (err) {
         return null;
