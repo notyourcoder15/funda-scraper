@@ -10,8 +10,8 @@
     "start": "cd server && npm start"
   },
   "dependencies": {
-    "axios": "^1.6.7",
     "archiver": "^7.0.1",
+    "axios": "^1.13.6",
     "cheerio": "^1.0.0-rc.12",
     "p-limit": "^3.1.0"
   },
