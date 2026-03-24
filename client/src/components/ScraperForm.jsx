@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || '/.netlify/functions/scrape';
 
 function ScraperForm() {
   const [url, setUrl] = useState('');
@@ -16,10 +16,10 @@ function ScraperForm() {
         setInfoLoading(true);
         setPropertyInfo(null);
         try {
-          const response = await fetch(`${API_BASE}/scrape/info`, {
+          const response = await fetch(API_BASE, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ url })
+            body: JSON.stringify({ url, action: 'info' })
           });
           if (response.ok) {
             const data = await response.json();
@@ -43,7 +43,7 @@ function ScraperForm() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_BASE}/scrape`, {
+      const response = await fetch(API_BASE, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url })
